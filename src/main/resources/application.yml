@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: Kotlin-Member-Service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/study?serverTimezone=Asia/Seoul
+    username: user
+    password: pwd
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: false
+        highlight_sql: true
+        default_batch_fetch_size: 100
+  data:
+    redis:
+      host: localhost
+      port: 6378
+
+logging:
+  pattern:
+    console: "[%d{HH:mm:ss.SSS}][%-5level][%logger.%method:line%line] - %msg%n"
+  level:
+    org:
+      hibernate:
+        SQL: debug
+        type.descriptor.sql: trace
+jwt:
+  secret: aWxvdmVteXNlbGZhbmRteWZhbWlseWFuZG15Z2lybGFuZG15bG9yZA==
