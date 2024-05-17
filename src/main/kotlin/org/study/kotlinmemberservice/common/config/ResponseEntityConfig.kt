@@ -19,7 +19,7 @@ class ResponseEntityConfig : ResponseBodyAdvice<Any> {
     returnType: MethodParameter,
     converterType: Class<out HttpMessageConverter<*>>
   ): Boolean {
-    return !returnType.method.toString().contains("ExceptionAdvice")
+    return !returnType.method.toString().contains("ExceptionHandlerAdvice")
   }
   
   override fun beforeBodyWrite(

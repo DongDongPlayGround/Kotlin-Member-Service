@@ -7,6 +7,7 @@ import org.study.kotlinmemberservice.member.Member
 import org.study.kotlinmemberservice.member.MemberRole
 import org.study.kotlinmemberservice.member.dto.MemberDTO
 import org.study.kotlinmemberservice.member.dto.MemberDTOWithRole
+import org.study.kotlinmemberservice.member.exception.MemberDomainException
 import org.study.kotlinmemberservice.member.mapper.MemberMapper
 import org.study.kotlinmemberservice.member.repository.MemberQueryRepository
 import org.study.kotlinmemberservice.member.repository.MemberCommandRepository
@@ -23,7 +24,7 @@ class MemberCommandService(
   @Transactional
   fun signUp(memberDTO: MemberDTOWithRole): MemberDTOWithRole {
     if (memberCommandRepository.existsByEmail(memberDTO.email))
-      throw RuntimeException("이미 존재하는 이메일입니다.")
+      throw MemberDomainException.alreadyExistEmail()
     
     val member = memberCommandRepository.save(
       Member.create(

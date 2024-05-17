@@ -8,7 +8,7 @@ import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.UnsupportedJwtException
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
-import io.jsonwebtoken.security.SecurityException
+import io.jsonwebtoken.security.SignatureException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.RedisTemplate
@@ -19,6 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
 import org.springframework.util.StringUtils
+import org.study.kotlinmemberservice.common.exception.AuthValidateException
 import org.study.kotlinmemberservice.member.service.refreshPrefix
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -87,8 +88,8 @@ class JwtTokenProvider(
   /*token 추출*/
   fun getAuthentication(token: String): Authentication {
     val claims: Claims = _getClaims(token)
-    val auth = claims[AUTHORITIES_KEY] ?: throw RuntimeException("AUTHORITIES_KEY 가 없는 잘못된 토큰입니다")
-    val memberId = claims[MEMBER_KEY] ?: throw RuntimeException("MEMBER_KEY 가 없는 잘못된 토큰입니다")
+    val auth = claims[AUTHORITIES_KEY] ?: throw AuthValidateException.notExistAuthoritiesKey()
+    val memberId = claims[MEMBER_KEY] ?: throw AuthValidateException.notExistMemberKey()
     val authorities: Collection<GrantedAuthority> = (auth as String).split(",")
       .map { SimpleGrantedAuthority(it) }
     val principal: UserDetails = CustomUser(memberId.toString().toLong(), claims.subject, "", authorities)
@@ -102,16 +103,14 @@ class JwtTokenProvider(
       return true
     } catch (e: Exception) {
       when (e) {
-        is SecurityException -> {} // invalid JWT Token
-        is MalformedJwtException -> {}
-        is ExpiredJwtException -> {}
-        is UnsupportedJwtException -> {} // Signed Claims JWSs are not supported.
-        is IllegalArgumentException -> {} // jwt claims string is empty
-        else -> {}
+        is MalformedJwtException -> {throw AuthValidateException.malformedJwtException()}
+        is ExpiredJwtException -> {throw AuthValidateException.expiredJwtException()}
+        is UnsupportedJwtException -> {throw AuthValidateException.unsupportedJwtException()} // Signed Claims JWSs are not supported.
+        is SignatureException -> {throw AuthValidateException.signatureException()} // Signed Claims JWSs are not supported.
+        is IllegalArgumentException -> {throw AuthValidateException.illegalArgumentException()} // jwt claims string is empty
+        else -> {throw AuthValidateException("AUTH", "token 검증 중 에러가 발생했습니다.")}
       }
-      println(e.message)
     }
-    return false
   }
   
   /*token resolve*/

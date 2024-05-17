@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.util.StringUtils
 import org.springframework.web.filter.OncePerRequestFilter
+import org.study.kotlinmemberservice.common.exception.AuthValidateException
 import org.study.kotlinmemberservice.member.service.blacklistPrefix
 
 /*GenericFilterBean 과의 차이
@@ -25,12 +26,16 @@ class JwtAuthenticationFilter(
     response: HttpServletResponse,
     filterChain: FilterChain
   ) {
-    val token = jwtTokenProvider.resolveToken(request, "Authorization")
-    validateBlackList(token)
-    
-    if(token!=null && jwtTokenProvider.validateToken(token)){
-      val authentication = jwtTokenProvider.getAuthentication(token)
-      SecurityContextHolder.getContext().authentication = authentication
+    try{
+      val token = jwtTokenProvider.resolveToken(request, "Authorization")
+      validateBlackList(token)
+      
+      if(token!=null && jwtTokenProvider.validateToken(token)){
+        val authentication = jwtTokenProvider.getAuthentication(token)
+        SecurityContextHolder.getContext().authentication = authentication
+      }
+    }catch (e: Exception){
+      request.setAttribute("exception", e)
     }
     filterChain.doFilter(request, response)
   }
@@ -38,9 +43,9 @@ class JwtAuthenticationFilter(
   
   /*expire 시간 지난 다음 어떻게 수행되는지 확인 필요*/
   private fun validateBlackList(accessToken: String?) {
-    
+    accessToken?.run {  }
     if (accessToken != null && redisTemplate.hasKey(accessToken.blacklistPrefix())) {
-      throw RuntimeException("로그아웃된 유효하지 않은 엑세스 토큰입니다.")
+      throw AuthValidateException.alreadyLogout()
     }
   }
 }

@@ -22,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
+  private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
   private val jwtTokenProvider: JwtTokenProvider,
   private val redisTemplate: RedisTemplate<String, String>
 ) {
@@ -40,7 +41,10 @@ class SecurityConfig(
       .addFilterBefore(
         JwtAuthenticationFilter(jwtTokenProvider, redisTemplate), // 이 앞부분이 통과하면 뒤의 User~Filter 은 진행하지 않는다
         UsernamePasswordAuthenticationFilter::class.java
-      ).cors { }
+      )
+      .exceptionHandling { it.authenticationEntryPoint(jwtAuthenticationEntryPoint) }
+      .cors { }
+    
     return http.build()
   }
   

@@ -56,6 +56,9 @@ dependencies {
   // swagger
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
   
+  // slf4j
+  implementation("org.slf4j:slf4j-api:2.0.12")
+  
   runtimeOnly("com.h2database:h2")
   runtimeOnly("com.mysql:mysql-connector-j")
   testImplementation("org.springframework.boot:spring-boot-starter-test")

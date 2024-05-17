@@ -13,6 +13,7 @@ import org.study.kotlinmemberservice.common.authority.TokenInfo
 import org.study.kotlinmemberservice.common.enums.HeaderKey
 import org.study.kotlinmemberservice.member.Member
 import org.study.kotlinmemberservice.common.authority.CustomUser
+import org.study.kotlinmemberservice.common.exception.AuthValidateException
 import org.study.kotlinmemberservice.member.dto.LoginDTO
 import org.study.kotlinmemberservice.member.repository.MemberCommandRepository
 import java.util.*
@@ -34,7 +35,6 @@ class AuthService(
     val authenticationToken = UsernamePasswordAuthenticationToken(loginDTO.email, loginDTO.password)
     // loadUserByName 메소드를 통해 실제 db 의 정보와 비교 후 authenticate 반환
     val authenticate = authenticationManagerBuilder.`object`.authenticate(authenticationToken)
-    
     // 위 로직에서 정상으로 인증되면 createToken 실시
     return jwtTokenProvider.createToken(authenticate)
   }
@@ -65,7 +65,7 @@ class AuthService(
       )
     
     if (!jwtTokenProvider.validateToken(refreshToken!!))
-      throw RuntimeException("유효하지 않은 refreshToken 입니다")
+      throw AuthValidateException.invalidRefreshToken();
     
     return TokenInfo(
       "Bearer",
@@ -83,7 +83,7 @@ class AuthService(
       )
     
     if (!jwtTokenProvider.validateToken(refreshToken!!))
-      throw RuntimeException("유효하지 않은 refreshToken 입니다")
+      throw AuthValidateException.invalidRefreshToken()
     // authentication
     val member: Member = memberCommandRepository.findById(
       (authentication.principal as CustomUser).memberId
